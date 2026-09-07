@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>date_request.exe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-1:#f7e9e4;
+    --bg-2:#f3e0e6;
+    --card:#fffaf7;
+    --ink:#54222c;
+    --ink-soft:#8a5c62;
+    --accent:#df5470;
+    --accent-dark:#b83a54;
+    --accent-2:#6e8f7c;
+    --line:#eaded7;
+    --mono:#a97882;
+    --shadow: 0 30px 60px -25px rgba(84,34,44,0.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:28px 16px;
+    background:
+      radial-gradient(circle at 15% 10%, #ffffffaa, transparent 45%),
+      radial-gradient(circle at 85% 90%, #ffffff88, transparent 40%),
+      linear-gradient(160deg, var(--bg-1), var(--bg-2));
+    font-family:'IBM Plex Mono', monospace;
+    color:var(--ink);
+  }
+  .app{ width:100%; max-width:440px; animation: rise .7s cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes rise{
+    from{ opacity:0; transform: translateY(24px) scale(.97); }
+    to{ opacity:1; transform: translateY(0) scale(1); }
+  }
+  .window{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:18px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .titlebar{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:12px 14px;
+    background:linear-gradient(180deg,#fff, #fdf5f1);
+    border-bottom:1px solid var(--line);
+  }
+  .dot{ width:10px; height:10px; border-radius:50%; }
+  .dot.r{background:#f0857f;} .dot.y{background:#f2c675;} .dot.g{background:#8fc39a;}
+  .titletext{
+    margin-left:6px;
+    font-size:12px;
+    letter-spacing:.02em;
+    color:var(--mono);
+  }
+  .progress{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 18px 0 18px;
+  }
+  .progress-track{
+    flex:1;
+    height:4px;
+    background:var(--line);
+    border-radius:99px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    width:20%;
+    background:linear-gradient(90deg, var(--accent), var(--accent-2));
+    border-radius:99px;
+    transition: width .5s cubic-bezier(.2,.8,.2,1);
+  }
+  .progress-label{ font-size:11px; color:var(--mono); white-space:nowrap; }
+
+  .screen{ position:relative; padding:30px 26px 26px; min-height:400px; }
+  .step{ display:none; }
+  .step.active{ display:block; animation: fadeIn .35s ease both; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:clamp(22px, 5.5vw, 28px);
+    line-height:1.25;
+    margin:14px 0 8px;
+  }
+  p.sub{ margin:0 0 20px; color:var(--ink-soft); font-size:13px; line-height:1.6; }
+
+  .icon-wrap{
+    width:52px; height:52px;
+    border-radius:14px;
+    background:#fdeeef;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .icon-wrap svg{ width:26px; height:26px; }
+
+  .yn-zone{ position:relative; min-height:96px; margin-top:8px; }
+  .btn{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:14px;
+    font-weight:500;
+    border:none;
+    border-radius:99px;
+    padding:13px 26px;
+    cursor:pointer;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .btn:active{ transform: scale(.96); }
+  .btn-primary{ background:var(--accent); color:#fff; box-shadow:0 10px 24px -10px rgba(223,84,112,.7); }
+  .btn-primary:hover{ background:var(--accent-dark); }
+  .btn-primary:disabled{ opacity:.4; cursor:not-allowed; box-shadow:none; }
+  .btn-ghost{
+    background:transparent; color:var(--ink-soft);
+    border:1px solid var(--line);
+  }
+  .btn-no{
+    background:transparent;
+    color:var(--ink-soft);
+    border:1px solid var(--line);
+    font-size:13px;
+    padding:10px 18px;
+  }
+  .row{ display:flex; gap:12px; align-items:center; margin-top:22px; }
+
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:12px; color:var(--mono); margin-bottom:7px; }
+  .field input[type="date"], .field select{
+    width:100%;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:14px;
+    color:var(--ink);
+    padding:12px 12px;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:#fff;
+  }
+  .field input:focus, .field select:focus{ outline:2px solid var(--accent); outline-offset:1px; }
+
+  .food-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:10px;
+    margin-top:6px;
+  }
+  .food-opt{
+    border:1px solid var(--line);
+    background:#fff;
+    border-radius:12px;
+    padding:14px 6px;
+    text-align:center;
+    cursor:pointer;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+  .food-opt .em{ font-size:22px; display:block; margin-bottom:6px; }
+  .food-opt.selected{ border-color:var(--accent); background:#fdeeef; color:var(--ink); }
+
+  .fee-card{
+    border:1px dashed var(--line);
+    border-radius:12px;
+    padding:16px;
+    margin:18px 0;
+  }
+  .fee-row{ display:flex; justify-content:space-between; align-items:baseline; }
+  .fee-row .amt{ font-family:'Fraunces', serif; font-size:22px; color:var(--accent); }
+  .fee-fine{ font-size:11px; color:var(--mono); margin-top:6px; }
+  .card-input{
+    margin-top:14px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:12px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    color:var(--ink-soft);
+    background:#fbf6f4;
+  }
+
+  .summary-list{ border-top:1px solid var(--line); margin-top:18px; }
+  .summary-row{
+    display:flex; justify-content:space-between;
+    padding:12px 0; border-bottom:1px solid var(--line);
+    font-size:13px;
+  }
+  .summary-row span:first-child{ color:var(--mono); }
+  .summary-row span:last-child{ color:var(--ink); font-weight:500; }
+
+  .overlay{
+    position:absolute; inset:0;
+    background:rgba(84,34,44,.55);
+    display:flex; align-items:center; justify-content:center;
+    padding:26px;
+    opacity:0; pointer-events:none;
+    transition:opacity .25s ease;
+  }
+  .overlay.show{ opacity:1; pointer-events:auto; }
+  .overlay-card{
+    background:#fff; border-radius:14px; padding:22px;
+    text-align:center; max-width:280px;
+    transform:scale(.9); transition:transform .25s ease;
+  }
+  .overlay.show .overlay-card{ transform:scale(1); }
+  .overlay-card p{ font-size:13px; color:var(--ink-soft); margin:8px 0 16px; }
+
+  footer.note{ text-align:center; font-size:10.5px; color:var(--mono); padding:14px 0 0; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="window">
+    <div class="titlebar">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="titletext">date_request.exe — running</span>
+    </div>
+    <div class="progress">
+      <span class="progress-label" id="stepLabel">STEP 1/5</span>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+
+    <div class="screen">
+
+      <!-- STEP 1 -->
+      <section class="step active" data-step="1">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#df5470" stroke-width="1.6"><path d="M12 20s-7-4.4-9.5-9C.7 7.4 2.6 4 6 4c2 0 3.4 1 6 3.4C14.6 5 16 4 18 4c3.4 0 5.3 3.4 3.5 7-2.5 4.6-9.5 9-9.5 9z"/></svg>
+        </div>
+        <h1>Will you go on a date with me?</h1>
+        <p class="sub">This dialog will not close until you answer correctly.</p>
+        <div class="yn-zone">
+          <button class="btn btn-primary" id="yesBtn1">yes ♥</button>
+          <button class="btn btn-no" id="noBtn1" style="margin-left:12px;">no</button>
+        </div>
+      </section>
+
+      <!-- STEP 2 -->
+      <section class="step" data-step="2">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#df5470" stroke-width="1.6"><path d="M12 3v6M8 6l4-3 4 3M5 12h14M7 12v7a2 2 0 002 2h6a2 2 0 002-2v-7"/></svg>
+        </div>
+        <h1>Wait, you actually said yes??</h1>
+        <p class="sub">I had a whole backup plan for "no." Guess I don't need it.</p>
+        <div class="row">
+          <button class="btn btn-primary" id="toStep3">okay okay! →</button>
+        </div>
+      </section>
+
+      <!-- STEP 3 -->
+      <section class="step" data-step="3">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#df5470" stroke-width="1.6"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></svg>
+        </div>
+        <h1>So… when are you free?</h1>
+        <p class="sub">Pick something real. I already cleared my calendar.</p>
+        <div class="field">
+          <label for="dateInput">Day</label>
+          <input type="date" id="dateInput">
+        </div>
+        <div class="field">
+          <label for="timeInput">Time</label>
+          <select id="timeInput">
+            <option value="">Select a time…</option>
+            <option>12:00 PM</option><option>1:00 PM</option><option>2:00 PM</option>
+            <option>3:00 PM</option><option>4:00 PM</option><option>5:00 PM</option>
+            <option>6:00 PM</option><option>7:00 PM</option><option>8:00 PM</option>
+          </select>
+        </div>
+        <div class="row">
+          <button class="btn btn-primary" id="toStep4" disabled>continue →</button>
+        </div>
+      </section>
+
+      <!-- STEP 4 -->
+      <section class="step" data-step="4">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#df5470" stroke-width="1.6"><path d="M4 8c0-2.8 3.6-5 8-5s8 2.2 8 5-3.6 5-8 5-8-2.2-8-5z"/><path d="M4 8v8c0 2.8 3.6 5 8 5s8-2.2 8-5V8"/></svg>
+        </div>
+        <h1>What are we feeling?</h1>
+        <p class="sub">Pick your vibe. Choose wrong and the date is cancelled. (Kidding. Mostly.)</p>
+        <div class="food-grid" id="foodGrid">
+          <div class="food-opt" data-food="Pizza"><span class="em">🍕</span>Pizza</div>
+          <div class="food-opt" data-food="Sushi"><span class="em">🍣</span>Sushi</div>
+          <div class="food-opt" data-food="Burgers"><span class="em">🍔</span>Burgers</div>
+          <div class="food-opt" data-food="Pasta"><span class="em">🍝</span>Pasta</div>
+          <div class="food-opt" data-food="Tacos"><span class="em">🌮</span>Tacos</div>
+          <div class="food-opt" data-food="Ramen"><span class="em">🍜</span>Ramen</div>
+        </div>
+        <div class="row">
+          <button class="btn btn-primary" id="toStep5" disabled>continue →</button>
+        </div>
+      </section>
+
+      <!-- STEP 5 (joke fee) -->
+      <section class="step" data-step="5">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#df5470" stroke-width="1.6"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg>
+        </div>
+        <h1>One small fee</h1>
+        <p class="sub">To confirm your acceptance of this date, please complete the following transaction. Totally normal. Everyone does this.</p>
+        <div class="fee-card">
+          <div class="fee-row"><span>Date Agreement™</span><span class="amt">$499</span></div>
+          <div class="fee-fine">one-time fee • non-refundable • absolutely worth it</div>
+          <div class="card-input">4242 4242 4242 4242 · 12/29 · CVC •••</div>
+        </div>
+        <div class="row">
+          <button class="btn btn-primary" id="payBtn">pay $499 &amp; confirm 💸</button>
+        </div>
+        <div class="row" style="margin-top:8px;">
+          <button class="btn btn-ghost" id="toStep6skip" style="font-size:12px;">go back</button>
+        </div>
+
+        <div class="overlay" id="payOverlay">
+          <div class="overlay-card">
+            <h1 style="font-size:18px;">relax, it's free 😭</h1>
+            <p>No card was charged. I just needed to see that face. See you soon.</p>
+            <button class="btn btn-primary" id="closeOverlay">see the plan →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 6 (summary) -->
+      <section class="step" data-step="6">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#df5470" stroke-width="1.6"><path d="M20 6L9 17l-5-5"/></svg>
+        </div>
+        <h1>It's a date.</h1>
+        <p class="sub">Saved to nothing official yet — add it to your calendar so it's real.</p>
+        <div class="summary-list" id="summaryList"></div>
+        <div class="row">
+          <button class="btn btn-primary" id="icsBtn">add to calendar</button>
+          <button class="btn btn-ghost" id="shareBtn">copy link</button>
+        </div>
+      </section>
+
+    </div>
+  </div>
+  <footer class="note">built with a few too many hours of free time</footer>
+</div>
+
+<script>
+(function(){
+  const state = { date:'', time:'', food:'' };
+  const steps = Array.from(document.querySelectorAll('.step'));
+  const stepLabel = document.getElementById('stepLabel');
+  const progressFill = document.getElementById('progressFill');
+  const TOTAL = 6;
+
+  function showStep(n){
+    steps.forEach(s => s.classList.toggle('active', s.dataset.step === String(n)));
+    stepLabel.textContent = 'STEP ' + n + '/' + TOTAL;
+    progressFill.style.width = (n/TOTAL*100) + '%';
+  }
+
+  // Step 1: yes / dodging no
+  const yesBtn1 = document.getElementById('yesBtn1');
+  const noBtn1 = document.getElementById('noBtn1');
+  const ynZone = document.querySelector('.yn-zone');
+  function dodge(){
+    const zoneRect = ynZone.getBoundingClientRect();
+    const btnRect = noBtn1.getBoundingClientRect();
+    const maxX = Math.max(zoneRect.width - btnRect.width - 8, 0);
+    const maxY = Math.max(zoneRect.height - btnRect.height - 8, 0);
+    const x = Math.random() * maxX;
+    const y = Math.random() * maxY;
+    noBtn1.style.position = 'absolute';
+    noBtn1.style.left = x + 'px';
+    noBtn1.style.top = y + 'px';
+  }
+  noBtn1.addEventListener('mouseenter', dodge);
+  noBtn1.addEventListener('touchstart', function(e){ e.preventDefault(); dodge(); }, {passive:false});
+  noBtn1.addEventListener('click', function(e){ e.preventDefault(); dodge(); });
+  yesBtn1.addEventListener('click', () => showStep(2));
+
+  document.getElementById('toStep3').addEventListener('click', () => showStep(3));
+
+  // Step 3: date/time
+  const dateInput = document.getElementById('dateInput');
+  const timeInput = document.getElementById('timeInput');
+  const toStep4 = document.getElementById('toStep4');
+  function checkStep3(){
+    toStep4.disabled = !(dateInput.value && timeInput.value);
+  }
+  dateInput.addEventListener('change', checkStep3);
+  timeInput.addEventListener('change', checkStep3);
+  toStep4.addEventListener('click', () => {
+    state.date = dateInput.value;
+    state.time = timeInput.value;
+    showStep(4);
+  });
+
+  // Step 4: food
+  const foodOpts = document.querySelectorAll('.food-opt');
+  const toStep5 = document.getElementById('toStep5');
+  foodOpts.forEach(opt => {
+    opt.addEventListener('click', () => {
+      foodOpts.forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      state.food = opt.dataset.food;
+      toStep5.disabled = false;
+    });
+  });
+  toStep5.addEventListener('click', () => showStep(5));
+
+  // Step 5: joke fee
+  const payBtn = document.getElementById('payBtn');
+  const payOverlay = document.getElementById('payOverlay');
+  payBtn.addEventListener('click', () => payOverlay.classList.add('show'));
+  document.getElementById('closeOverlay').addEventListener('click', () => {
+    payOverlay.classList.remove('show');
+    renderSummary();
+    showStep(6);
+  });
+  document.getElementById('toStep6skip').addEventListener('click', () => showStep(4));
+
+  // Step 6: summary
+  function formatDate(d){
+    if(!d) return '—';
+    const parts = d.split('-');
+    const dt = new Date(parts[0], parts[1]-1, parts[2]);
+    return dt.toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' });
+  }
+  const foodEmoji = { Pizza:'🍕', KFC:'🍣', Burgers:'🍔', Pasta:'🍝', DOMINOS:'🌮', MOTURA:'🍜' };
+  function renderSummary(){
+    const list = document.getElementById('summaryList');
+    list.innerHTML = `
+      <div class="summary-row"><span>Day</span><span>${formatDate(state.date)}</span></div>
+      <div class="summary-row"><span>Time</span><span>${state.time || '—'}</span></div>
+      <div class="summary-row"><span>Food</span><span>${foodEmoji[state.food]||''} ${state.food || '—'}</span></div>
+    `;
+  }
+
+  document.getElementById('icsBtn').addEventListener('click', () => {
+    if(!state.date || !state.time){ return; }
+    const [y,m,d] = state.date.split('-').map(Number);
+    const timeMatch = state.time.match(/(\d+):(\d+) (AM|PM)/);
+    let hour = parseInt(timeMatch[1],10);
+    const minute = timeMatch[2];
+    if(timeMatch[3] === 'PM' && hour !== 12) hour += 12;
+    if(timeMatch[3] === 'AM' && hour === 12) hour = 0;
+    const pad = n => String(n).padStart(2,'0');
+    const dtStart = `${y}${pad(m)}${pad(d)}T${pad(hour)}${minute}00`;
+    const endHour = (hour+2)%24;
+    const dtEnd = `${y}${pad(m)}${pad(d)}T${pad(endHour)}${minute}00`;
+    const ics = [
+      'BEGIN:VCALENDAR','VERSION:2.0','BEGIN:VEVENT',
+      'SUMMARY:Our date 💕',
+      `DESCRIPTION:${state.food || 'Food'} plans, agreed via date_request.exe`,
+      `DTSTART:${dtStart}`,`DTEND:${dtEnd}`,
+      'END:VEVENT','END:VCALENDAR'
+    ].join('\n');
+    const blob = new Blob([ics], {type:'text/calendar'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'our-date.ics';
+    a.click();
+  });
+
+  document.getElementById('shareBtn').addEventListener('click', () => {
+    const url = window.location.href;
+    if(navigator.clipboard){
+      navigator.clipboard.writeText(url).then(() => {
+        const btn = document.getElementById('shareBtn');
+        const original = btn.textContent;
+        btn.textContent = 'copied!';
+        setTimeout(() => btn.textContent = original, 1500);
+      });
+    }
+  });
+
+  showStep(1);
+})();
+</script>
+
+</body>
+</html>
